@@ -1,0 +1,201 @@
+
+class System;
+
+enum stan
+{
+	wlaczony = 0, wylaczony = 1, zablokowany = 2
+};
+class Operator
+{
+private:
+	char nazwa[20];
+public:
+	void setNazwa(const char* nazwa) {
+		if (strlen(nazwa) >= sizeof(this->nazwa)) {
+			throw invalid_argument("Nazwa jest za dluga.");
+		}
+		strncpy_s(this->nazwa, sizeof(this->nazwa), nazwa, _TRUNCATE);
+	}
+	char* getNazwa() { return nazwa; }
+	Operator(const char* nazwa) {
+		setNazwa(nazwa);
+	}
+};
+
+class System {
+private:
+	char nazwa[20];
+	double kosztObl;
+public:
+
+	void setNazwa(const char* nazwa) {
+		if (strlen(nazwa) >= sizeof(this->nazwa)) {
+			throw invalid_argument("numer jest za dluga.");
+		}
+		strncpy_s(this->nazwa, sizeof(this->nazwa), nazwa, _TRUNCATE);
+	}
+	char* getNazwa() { return nazwa; }
+	double getKoszt() {
+		return kosztObl;
+	}
+	void setKoszt(double a) {
+		if (a <= 0.0 || a >= 1) {
+			throw invalid_argument("zla liczba");
+		}
+		kosztObl = a;
+	}
+	System(const char* nazwa, double koszt) {
+		setNazwa(nazwa);
+		setKoszt(koszt);
+	}
+
+};
+
+
+class Telefon
+{
+protected:
+	char nr[10];
+	int bateria;
+	Operator* oper;
+	stan s;
+	char pin[5];
+	static int lBlok;
+public:
+	void setNr(const char* nr) {
+		if (strlen(nr) >= sizeof(this->nr)) {
+			throw invalid_argument("numer jest za dluga.");
+		}
+		assert(!(strlen(nr) >= sizeof(this->nr)));
+		for (size_t i = 0; i < strlen(nr); ++i) {
+			
+			assert((nr[i] <= '0' || nr[i] >= '9'));
+
+		}
+
+		strncpy_s(this->nr, sizeof(this->nr), nr, _TRUNCATE);
+
+	}
+	char* getNr() { return nr; }
+	Operator* getOperator() { return oper; }
+	void setOperator(Operator a) {
+		oper = &a;
+	}
+	int getBateria() { return bateria; }
+	void setBateria(int a) {
+		if (a <= 0) {
+			bateria = 0;
+		}
+		bateria = a;
+	}
+	stan getStan() {
+		return s;
+	}
+	//setery jeden dla sablowanego
+	void setStan(stan a) {
+		if (s != zablokowany) {
+			s = a;
+		}
+
+	}
+	// nie dokmoczona poprawka na jeden seter zamoast 2 nie wyrobilem sie
+	void setStanZzab(stan a, const char* pin = nullptr) {
+		if (s == zablokowany) {
+			if (a != zablokowany || strncmp(pin, this->pin, 4)==0) {
+				s = a;
+				lBlok--;
+			}
+			else {
+
+			}
+		}
+		else {
+			if (a != zablokowany) {
+				s = a;
+			}
+			else
+			{
+				s = a;
+				lBlok++;
+			}
+		}
+		
+
+	}
+	Telefon(const char* nr, int bateria, Operator oper, stan s) {
+		char pin[] = { '1', '2', '3', '4' ,'\0' };
+		strncpy_s(this->pin, sizeof(this->pin), pin, _TRUNCATE);
+		setNr(nr);
+		setBateria(bateria);
+		setOperator(oper);
+		setStan(s);
+	}
+	virtual double czas() {
+		return 20.0 * this->bateria;
+	}
+	Telefon& operator+=(int b) {
+		if (b + this->getBateria() > 100) {
+			this->setBateria(100);
+			return *this;
+		}
+		if (this->getBateria() + b <= 0) {
+			this->setStan(wylaczony);
+		}
+		this->setBateria(this->getBateria() + b);
+		
+		return *this;
+	}
+
+
+};
+
+
+class Smartfon : public Telefon {
+private:
+	System* sys;
+public:
+	System* getSystem() { return sys; }
+	void setSystemSystem(System a) {
+		sys = &a;
+	}
+
+	Smartfon(Telefon a, System s) :Telefon(a) {
+
+		setSystemSystem(s);
+
+	}
+	double czas() override {
+		return (20.0 - 10 * this->getSystem()->getKoszt()) * this->getBateria();
+	}
+
+};
+
+
+int  Telefon::lBlok = 0;
+//5
+Smartfon stworz(Telefon a,System s) {
+	
+	Smartfon smartfonik(a, s);
+	return smartfonik;
+}
+int main()
+{//konstruktory
+	Operator o("Jan Kowalski");
+	Telefon a("nokia", 10, o, wlaczony);
+	System g("android", 0.1);
+	//nieformalna kowersja
+	Smartfon e = stworz(a,g);
+	//czas dzoalana
+	cout << a.czas() << endl;
+	a += 10;
+	cout << a.czas() << endl;
+	cout << "X" << endl;
+	cout << e.czas() << endl;
+	//stan
+	a.setStan(zablokowany);
+	cout << a.getStan() << endl;
+	a.setStanZzab(wlaczony, "1234");
+	cout << a.getStan() << endl;
+	a += 100;
+	cout << a.getBateria() << endl;
+}
