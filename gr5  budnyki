@@ -7,7 +7,7 @@ public:
 		if (strlen(n) >= sizeof(this->nazwa)) {
 			throw invalid_argument("Nazwa jest za dluga.");
 		}
-		strncpy_s(this->nazwa, sizeof(this->nazwa), nazwa, _TRUNCATE);
+		strncpy_s(this->nazwa, sizeof(this->nazwa), n, _TRUNCATE);
 	}
 	Miejscowosc(const char* nazwa) {
 		setNazwa(nazwa);
@@ -31,6 +31,7 @@ protected:
 	Miejscowosc* miejsce;
 	static int notpublic;
 private:
+
 	void ispublic() {
 		if (rodzaj == Publiczny) {
 
@@ -41,37 +42,17 @@ private:
 		}
 	}
 public:
-	void zmianatypu(typ r) {
-		if(r==Publiczny){
-			if (rodzaj != Publiczny) {
-				rodzaj = r;
-			this->ispublic();
-
-			}
-			else {
-				rodzaj = r;
-				notpublic--;
-			}
-		}
-		else {
-			if (rodzaj != Publiczny) {
-				rodzaj = r;
-			}
-			else {
-				rodzaj = r;
-				this->ispublic();
-			}
-		}
-		
+	int getnotpulbic() {
+		return notpublic;
 	}
+	
 	void setMiejsce(Miejscowosc* m) {
 		miejsce = m;
 	}
 	void setMetrarz(double a) {
-		if (a > 0) {
+		assert(a > 0);
 			m = a;
-		}
-		throw	invalid_argument("zly metrarz");
+	
 	}
 	// Seter dla ulicy
 	void setUlica(const char* ulica) {
@@ -156,9 +137,37 @@ public:
 		strcat_s(adres, sizeof(adres), kod_bez_myslnika);
 	}
 
-		
+	char* getadres() {
+		return adres;
+	}
+	void zmianatypu(typ r) {
+
+		if (rodzaj == Publiczny) {
+			if (r != Publiczny) {
+				rodzaj = r;
+				notpublic--;
+			}
+			else {
+			
+			}
+		}
+		else {
+			if (r != Publiczny) {
+				rodzaj = r;
+				
+			}
+			else {
+				rodzaj = r;
+				this->ispublic();
+			}
+		}
+
+
+	}
 	void setRodzaj(typ a) {
-		this->zmianatypu(a);
+		
+			this->ispublic();
+		
 		
 	}
 	Miejscowosc*  getMiejscosc() {
@@ -203,17 +212,8 @@ public:
 	double wartosc() const override {
 		return m * 10+d*5;
 	}
-	bool operator ==(const Posiadlosc& other) const {
-		if (this->m != other.m) {
-			return false;
-	}
-		if (this->d != other.d) {
-			return false;
-		}
-		if (this->miejsce == other.miejsce) {
-			return false;
-		}
-		return true;
+	bool operator==(const Posiadlosc& other) const {
+		return this->m == other.m && this->d == other.d && *(this->miejsce) == *(other.miejsce);
 	}
 
 	Posiadlosc(double m, const char* ulica, const char* nr, const char* kod, typ r, Miejscowosc* i, double dzialka)
@@ -222,5 +222,14 @@ public:
 int Budynki::notpublic = 0;
 int main()
 {
+	Miejscowosc miejsc1("Warszawa");
+	Miejscowosc miejsc2("Krakow");
 
+	Budynki bud1(120.5, "Marszalkowska", "10", "00-123", Mieszkalny, &miejsc1);
+	Budynki bud2(120.5, "Marszalkowska", "10", "00-123", Publiczny, &miejsc1);
+	Posiadlosc pos1(150.5, "Pilsudskiego", "15", "30-456", Komercyjny, &miejsc2, 300);
+	bud2.zmianatypu(Mieszkalny);
+	cout << "Budynki not public: " << bud1.getnotpulbic() << endl;
+	cout << "Wartosc budynku: " << bud1.wartosc() << endl;
+	cout << "Wartosc posiadlosci: " << pos1.wartosc() << endl;
 }
