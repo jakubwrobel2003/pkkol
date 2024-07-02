@@ -1,0 +1,140 @@
+#ifdef Zad_8_KOL1
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+class Autor {
+private:
+	char nazwisko[16];
+
+public:
+	const char* getNazwisko() const {
+		return nazwisko;
+	}
+
+	void setNazwisko(const char* nazwa) {
+		strncpy_s(nazwisko, sizeof(nazwisko), nazwa, _TRUNCATE);
+	}
+
+	Autor(const char* n) {
+		setNazwisko(n);
+	}
+
+	bool operator==(const Autor& other) const {
+		return std::strcmp(nazwisko, other.nazwisko) == 0;
+	}
+};
+
+class Ksiazka {
+private:
+	char tytul[30];
+	int liczbaStron;
+	bool dostep;
+	Autor* autor; // Surowy wskaźnik do Autor
+
+public:
+	Ksiazka() : liczbaStron(0), dostep(false), autor(nullptr) {}
+
+	Ksiazka(const char* _tytul, int _liczbaStron, bool _dostep, const char* _nazwiskoAutora)
+		: liczbaStron(_liczbaStron), dostep(_dostep), autor(new Autor(_nazwiskoAutora)) {
+		setTytul(_tytul);
+	}
+
+	~Ksiazka() {
+		delete autor; // Zwolnienie pamięci za pomocą delete
+	}
+
+	// Konstruktor kopiujący
+	Ksiazka(const Ksiazka& other)
+		: liczbaStron(other.liczbaStron), dostep(other.dostep), autor(new Autor(other.autor->getNazwisko())) {
+		setTytul(other.tytul);
+	}
+
+	// Operator przypisania
+	Ksiazka& operator=(const Ksiazka& other) {
+		if (this != &other) {
+			liczbaStron = other.liczbaStron;
+			dostep = other.dostep;
+			delete autor; // Zwolnienie starego autor, jeśli istnieje
+			autor = new Autor(other.autor->getNazwisko());
+			setTytul(other.tytul);
+		}
+		return *this;
+	}
+
+	const char* getTytul() const {
+		return tytul;
+	}
+
+	void setTytul(const char* nazwa) {
+		strncpy_s(tytul, sizeof(tytul), nazwa, _TRUNCATE);
+	}
+
+	int getLiczbaStron() const {
+		return liczbaStron;
+	}
+
+	void setLiczbaStron(int a) {
+		liczbaStron = a;
+	}
+
+	bool isDostep() const {
+		return dostep;
+	}
+
+	void setDostep(bool a) {
+		dostep = a;
+	}
+
+	Autor* getAutor() const {
+		return autor;
+	}
+
+	void setAutor(Autor* a) {
+		autor = a;
+	}
+
+	// Przeciążenie operatora << dla strumienia wyjściowego
+	friend std::ostream& operator<<(std::ostream& os, const Ksiazka& ksiazka) {
+		os << "Książka:\n";
+		os << "Tytuł: " << ksiazka.tytul << "\n";
+		os << "Liczba stron: " << ksiazka.liczbaStron << "\n";
+		os << "Dostępność: " << (ksiazka.dostep ? "dostępna" : "niedostępna") << "\n";
+		os << "Autor: " << ksiazka.autor->getNazwisko() << "\n";
+		return os;
+	}
+
+	bool operator==(const Ksiazka& other) const {
+		return liczbaStron == other.liczbaStron &&
+			dostep == other.dostep &&
+			(*autor == *other.autor); // Porównanie Autorów
+	}
+};
+
+class Ebook : public Ksiazka {
+private:
+	double rozmiar;
+
+public:
+	Ebook(const char* tytul, int liczbaStron, bool dostep, const char* nazwiskoAutora, double _rozmiar)
+		: Ksiazka(tytul, liczbaStron, dostep, nazwiskoAutora), rozmiar(_rozmiar) {}
+
+	double getRozmiar() const {
+		return rozmiar;
+	}
+
+	void setRozmiar(double r) {
+		rozmiar = r;
+	}
+};
+
+int main() {
+	Autor autor("Jan Kowalski");
+	Ebook ebook("Programowanie w C++", 400, true, autor.getNazwisko(), 2.5);
+
+	std::cout << "Ebook:\n";
+	std::cout << ebook;
+
+	return 0;
+}
