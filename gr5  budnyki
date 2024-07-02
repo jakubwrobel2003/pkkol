@@ -1,0 +1,226 @@
+class Miejscowosc
+{
+private:
+	char nazwa[20];
+public:
+	void setNazwa(const char* n) {
+		if (strlen(n) >= sizeof(this->nazwa)) {
+			throw invalid_argument("Nazwa jest za dluga.");
+		}
+		strncpy_s(this->nazwa, sizeof(this->nazwa), nazwa, _TRUNCATE);
+	}
+	Miejscowosc(const char* nazwa) {
+		setNazwa(nazwa);
+	}
+	bool operator==(const Miejscowosc& other) const {
+		return strcmp(nazwa, other.nazwa) == 0;
+	}
+};
+
+enum typ
+{
+	Mieszkalny = 1,
+	Publiczny=2,
+	Komercyjny=3,
+};
+class Budynki {
+protected:
+	char adres[50];
+	double m;
+	typ rodzaj;
+	Miejscowosc* miejsce;
+	static int notpublic;
+private:
+	void ispublic() {
+		if (rodzaj == Publiczny) {
+
+		}
+		else
+		{
+			notpublic++;
+		}
+	}
+public:
+	void zmianatypu(typ r) {
+		if(r==Publiczny){
+			if (rodzaj != Publiczny) {
+				rodzaj = r;
+			this->ispublic();
+
+			}
+			else {
+				rodzaj = r;
+				notpublic--;
+			}
+		}
+		else {
+			if (rodzaj != Publiczny) {
+				rodzaj = r;
+			}
+			else {
+				rodzaj = r;
+				this->ispublic();
+			}
+		}
+		
+	}
+	void setMiejsce(Miejscowosc* m) {
+		miejsce = m;
+	}
+	void setMetrarz(double a) {
+		if (a > 0) {
+			m = a;
+		}
+		throw	invalid_argument("zly metrarz");
+	}
+	// Seter dla ulicy
+	void setUlica(const char* ulica) {
+		this->setadres(ulica, this->getNr(), this->getKod());
+
+	}
+
+	// Seter dla numeru
+	void setNr(const char* nr) {
+		
+		if (strlen(nr)>0 && strlen(nr) > 4) {
+
+			this->setadres(this->getUlica(), nr, this->getKod());
+		}
+		else {
+			throw invalid_argument("zly metrarz");
+		}
+	}
+
+	// Seter dla kodu pocztowego
+	void setKod(const char* kod) {
+		if (strlen(kod )==7) {
+
+		this->setadres(this->getUlica(), this->getNr(), kod);
+		}
+		else {
+			throw invalid_argument("zly metrarz");
+		}
+	}
+
+	// Geter dla ulicy
+	const char* getUlica() const {
+		static char result[20];
+		const char* start = adres;
+		const char* end = strchr(adres, ',');
+		size_t length = end - start;
+		strncpy_s(result, start, length);
+		result[length] = '\0';
+		return result;
+	}
+
+	// Geter dla numeru
+	const char* getNr() const {
+		static char result[10];
+		const char* start = strchr(adres, ',') + 1;
+		const char* end = strchr(start, ',');
+		size_t length = end - start;
+		strncpy_s(result, start, length);
+		result[length] = '\0';
+		return result;
+	}
+
+	// Geter dla kodu pocztowego
+	const char* getKod() const {
+		static char result[10];
+		const char* start = strrchr(adres, ',') + 1;
+		strncpy_s(result, start, strlen(start));
+		return result;
+	}
+	void setadres(const char* ulica, const char* nr, const char* kod) {
+		size_t totalLength = strlen(ulica) + strlen(nr) + strlen(kod) + 2; // +2 na przecinki
+		if (totalLength >= 50) {
+			std::cerr << "Error: Combined length of ulica, nr, and kod exceeds 50 characters." << std::endl;
+		}
+		// Połączenie ciągów znaków i zapisanie do adres
+		strcpy_s(adres, sizeof(adres), ulica);
+		strcat_s(adres, sizeof(adres), ",");
+		strcat_s(adres, sizeof(adres), nr);
+		strcat_s(adres, sizeof(adres), ",");
+
+		// Usunięcie myślnika z kodu pocztowego
+		char kod_bez_myslnika[6];
+		int j = 0;
+		for (int i = 0; kod[i] != '\0'; i++) {
+			if (kod[i] != '-') {
+				kod_bez_myslnika[j++] = kod[i];
+			}
+		}
+		kod_bez_myslnika[j] = '\0';
+
+		// Dodanie przetworzonego kodu pocztowego
+		strcat_s(adres, sizeof(adres), kod_bez_myslnika);
+	}
+
+		
+	void setRodzaj(typ a) {
+		this->zmianatypu(a);
+		
+	}
+	Miejscowosc*  getMiejscosc() {
+		return miejsce;
+	}
+	typ getTyp() {
+		return rodzaj;
+	}
+	double getM() {
+		return m;
+	}
+	char* getaders() {
+		return adres;
+	}
+	Budynki(double m, const char* ulica, const char* nr, const char* kod, typ r, Miejscowosc* i) {
+		this->setadres(ulica, nr, kod);
+		this->setMetrarz(m);
+		this->setMiejsce(i);
+		this->setRodzaj(r);
+
+	}
+	virtual double wartosc() const {
+		return m * 10;
+	}
+	operator double() const {
+		return sqrt(2 * m);
+	}
+};
+class Posiadlosc :public Budynki {
+private:
+	double d;
+public:
+	void setMetrarzDz(double a) {
+		if (a > 0) {
+			d = a;
+		}
+		throw	invalid_argument("zly metrarz");
+	}
+	double getdzial() {
+		return d;
+	}
+	double wartosc() const override {
+		return m * 10+d*5;
+	}
+	bool operator ==(const Posiadlosc& other) const {
+		if (this->m != other.m) {
+			return false;
+	}
+		if (this->d != other.d) {
+			return false;
+		}
+		if (this->miejsce == other.miejsce) {
+			return false;
+		}
+		return true;
+	}
+
+	Posiadlosc(double m, const char* ulica, const char* nr, const char* kod, typ r, Miejscowosc* i, double dzialka)
+		: Budynki(m, ulica, nr, kod, r, i), d(dzialka) {}
+};
+int Budynki::notpublic = 0;
+int main()
+{
+
+}
