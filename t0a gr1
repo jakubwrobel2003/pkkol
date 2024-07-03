@@ -37,44 +37,74 @@ int* gentab(int rozmiar) {
 }
 	void zapis(A a) {
 		FILE* plik = NULL;
-	
 		errno_t error = fopen_s(&plik, "../plik1.txt", "w");
-		
-		int size = a.tab[-1];
-		a.tab--;
-		//cout << a.tab[0];
-		fwrite(a.tab, sizeof(int), size, plik);
-		//cout << tab[0] << endl;
 
+		if (error != 0 || plik == NULL) {
+			// Handle error (e.g., file not found or cannot open file)
+			return;
+		}
+
+		// Move the pointer back to include the size
+		a.tab--;
+
+		// Write the size of the array
+		int size = a.tab[0];
+		fprintf(plik, "%d;", size);
+
+		// Write the array elements
+		for (int i = 0; i < size; ++i) {
+			fprintf(plik, "%d;", a.tab[i+1]);
+		}
+
+		// Close the file
 		fclose(plik);
 
-	
+		// Move the pointer forward again to keep the original state
+		a.tab++;
 	};
 	void odczyt(A* a) {
-		
 		FILE* plik = NULL;
 		errno_t error = fopen_s(&plik, "../plik1.txt", "r");
-		
+		rewind(plik);
+		if (error != 0 || plik == NULL) {
+			// Handle error (e.g., file not found or cannot open file)
+			return;
+		}
+
 		int size;
-		fread(&size, sizeof(int), 1, plik);
+		// Read the size of the array
+		fscanf_s(plik, "%d;", &size);
+		cout << size<<"XDXDXDXD";
 		int* tab1 = new int[size + 1];
-		tab1[0] = size; tab1 += 1;
-		fread(tab1 , sizeof(int), size, plik);
-		a->tab = tab1 ; // Ustawienie wskaźnika na właściwą pozycję
+		tab1[0] = size;
+		tab1 += 1;  // Adjust pointer to make the first element as the size
+
+		// Read the elements of the array
+		for (int i = 0; i < size; ++i) {
+			fscanf_s(plik, "%d;", &tab1[i]);
+			cout<<tab1[i]<<"\n";
+		}
+
+		a->tab = tab1;  // Set the pointer to the correct position
+
 		fclose(plik);
-		tab1 = nullptr;
+		tab1 = nullptr;  // Prevent memory leak
 	};
 	bool porownaj(A& a, A& b) {
 		int sizea = a.tab[-1];
 		int sizeb = b.tab[-1];
-
+			cout << a.tab[-1] << " " << b.tab[-1] << "\n";
+		cout << a.tab[-1] << " " << b.tab[-1] << "\n";
 		if (sizea != sizeb) {
 			return false;
 		}
 		for (int i = 0; i < sizea; i++) {
 			if (a.tab[i] != b.tab[i]) {
-				return false;
+				cout << a.tab[i] << " " << b.tab[i] << "\n";
+
+				
 			}
+			cout << a.tab[i] << " " << b.tab[i] << "\n";
 			return true;
 		}
 	};
