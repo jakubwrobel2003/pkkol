@@ -1,0 +1,83 @@
+#include <iostream>
+#include <cstdio>
+
+// Struktura MojaStruktura z polami float i char
+struct MojaStruktura {
+	float f;
+	char c;
+};
+
+// Funkcja do alokacji tablicy instancji struktury
+MojaStruktura* alokujTablice(int rozmiar, MojaStruktura wzorzec) {
+	MojaStruktura* tablica = new MojaStruktura[rozmiar+1];
+	tablica[0].c= static_cast<char>(rozmiar);
+	tablica[0].f = 0;
+	tablica++;
+	for (int i = 0; i < rozmiar; i++) {
+		tablica[i] = wzorzec;
+	}
+	
+	return tablica;
+}
+
+// Funkcja do poprawnej dealokacji tablicy
+void dealokujTablice(MojaStruktura* tablica) {
+	tablica--;
+	delete[] tablica;
+	tablica = nullptr;
+}
+
+void zapiszTabliceDoPliku(MojaStruktura* tablica) {
+	FILE* plik;
+	fopen_s(&plik, "plik232.txt", "w");
+	if (plik == nullptr) {
+		std::cerr << "Nie można otworzyć pliku do zapisu!" << std::endl;
+		return;
+	}
+	for (int i = -1; i < static_cast<int>(tablica[-1].c) + 1; i++) {
+		fprintf(plik, "%f %c\n", tablica[i].f, tablica[i].c);
+	}
+	fclose(plik);
+}
+MojaStruktura* odczytajTabliceZPliku() {
+	FILE* plik;
+	fopen_s(&plik, "plik232.txt", "r");
+	if (plik == nullptr) {
+		std::cerr << "Nie można otworzyć pliku do odczytu!" << std::endl;
+		return nullptr;
+	}
+
+	// Odczytaj pierwszy element, aby poznać rozmiar tablicy
+	MojaStruktura pierwszyElement;
+	fscanf_s(plik, "%f %c\n", &pierwszyElement.f, &pierwszyElement.c, sizeof(pierwszyElement.c));
+	int rozmiar = static_cast<int>(pierwszyElement.c);
+
+	fscanf_s(plik, "%f %c\n", &pierwszyElement.f, &pierwszyElement.c, sizeof(pierwszyElement.c));
+	fclose(plik);
+	return alokujTablice(rozmiar, pierwszyElement);
+}
+
+int main() {
+	MojaStruktura wzorzec = { 1.23, 'a' };
+	MojaStruktura* tab = alokujTablice(3, wzorzec);
+	MojaStruktura* tab2 = alokujTablice(3, wzorzec);
+	MojaStruktura* tab3 = alokujTablice(4, wzorzec);
+	zapiszTabliceDoPliku(tab);
+	MojaStruktura* tab5 = odczytajTabliceZPliku();
+	bool identyczne = true;
+	for (int i = 0; i < static_cast<int>(tab[-1].c); i++) {
+		if (tab[i].f != tab5[i].f || tab[i].c != tab5[i].c) {
+			identyczne = false;
+			break;
+		}
+	}
+	cout << "Tablice są " << (identyczne ? "identyczne" : "nieidentyczne") << endl;
+	dealokujTablice(tab);
+	dealokujTablice(tab2);
+	dealokujTablice(tab3);
+	dealokujTablice(tab5);
+
+	return 0;
+	
+
+}
