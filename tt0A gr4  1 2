@@ -1,0 +1,129 @@
+
+
+		int main()
+		{
+
+
+			short* tab = gentab(4, true);
+			short* tab2 = gentab(4, false);
+			short* tab3 = gentab(5, false);
+
+			dopliku(tab, true);
+			dopliku(tab2, false);
+			dopliku(tab3, false);
+			cout << "PODAJ NR tablicy 0-2";
+			short g;
+			cin >> g;
+			short* tabzpliku = zpliku(g);
+			tabzpliku++;
+			tab --;
+			tab3 --;
+			tab2 --;
+			tabzpliku --;
+			delete[] tab;
+			delete[] tab2;
+
+			delete[] tab3;
+			delete[] tabzpliku; 
+			tab = nullptr;
+			tab3 = nullptr;
+			tab2 = nullptr;
+			tabzpliku = nullptr;
+	}
+funkcje.cpp
+#include "funkcje.h"
+
+
+short* gentab(int size, bool restart) {
+	short static i;
+	if (restart) {
+		i = 0;
+	}
+	else
+	{
+		i++;
+	}
+	short* tab = new short[size + 1] {0};
+	uint8_t  maska;
+
+	maska = 127; //1111 11111
+
+	uint8_t tLiczba = size & maska;
+	tLiczba <<= 4;
+	tLiczba = tLiczba + i;
+	//cout << bitset<8>(tLiczba) << endl;
+	tab[0] = tLiczba;
+	tab++;
+	return tab;
+}
+
+void dopliku(short* tab, bool reset) {
+	FILE* plik = NULL;
+	if (reset) {
+		errno_t error = fopen_s(&plik, "../plik.txt", "w");
+	}
+	else {
+		errno_t error = fopen_s(&plik, "../plik.txt", "a");
+	}
+
+
+	uint8_t  size = tab[-1];
+	size >>= 4;
+	size++;
+	tab--;
+	fwrite(tab, sizeof(short), size, plik);
+	//cout << tab[0] << endl;
+
+	fclose(plik);
+}
+short* zpliku(short g) {
+	FILE* plik = NULL;
+	short size = 255;
+	short* tab = new short[255] {0};
+	short a = -1;
+	errno_t error = fopen_s(&plik, "../plik.txt", "r");
+	do {
+		fread(&a, sizeof(short), 1, plik);
+		size = a;
+		size >>= 4;
+		uint8_t mask = 15;
+		a = a & mask;
+		//cout <<size <<" " <<a<< "\n";
+		if (g == a) {
+			tab = new short[size];
+			fread(tab, sizeof(short), size, plik);
+		}
+	} while (g != a);
+	short* tab2 = new short[size + 1];
+	//cout << size << " " << a << "\n";
+	uint8_t  maska;
+
+	maska = 15; //1111 11111
+
+	uint8_t tLiczba = size & maska;
+	tLiczba <<= 4;
+	tLiczba = tLiczba + a;
+
+	tab2[0] = tLiczba;
+	tab2++;
+	cout << "tablica uzytkownika;\n";
+	for (int i = 0; i < size; i++) {
+		tab2[i] = tab[i];
+		cout << tab2[i] << i << "\n";
+	}
+	/*
+	*/
+
+	
+	
+
+	
+	return tab;
+};
+funkcje.h
+#pragma once
+#include <iostream>
+using namespace std;
+short* gentab(int size, bool restart);
+void dopliku(short* tab, bool reset = false);
+short* zpliku(short g);
