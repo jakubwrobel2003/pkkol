@@ -1,0 +1,210 @@
+
+
+#ifdef Kol_2B 
+class Wlasciciel {
+private:
+	char nazwa[20];
+public:
+	void setNazwa(const char* nazwa) {
+		if (strlen(nazwa) >= sizeof(this->nazwa)) {
+			throw invalid_argument("nazwa jest za dluga.");
+		}
+		strncpy_s(this->nazwa, sizeof(this->nazwa), nazwa, _TRUNCATE);
+	}
+	char* getNazwa() { return nazwa; }
+	Wlasciciel(const char* nazwa) {
+		setNazwa(nazwa);
+	}
+};
+
+class Samochod {
+protected:
+	char rejestracja[9];
+	int licznik;
+	bool dopuszczony;
+	static Samochod* wzorzec;
+	Wlasciciel* w;
+	int warpocz;
+
+	
+
+public:
+	void setwarpocz(int a) {
+		if (a<400) {
+			throw invalid_argument("Numer rejestracyjny powinien składać się z 9 znakow.");
+		}
+		warpocz = a;
+	}
+	int getwarpocz() {
+
+		return warpocz;
+	}
+	void setNrrejestrcji(const char* rej) {
+		if (strlen(rej) != 9) {
+			throw invalid_argument("Numer rejestracyjny powinien składać się z 9 znakow.");
+		}
+		strncpy_s(this->rejestracja, sizeof(this->rejestracja), rej, _TRUNCATE);
+	}
+
+	static void setWzorzec(Samochod* wzorzec) {
+		Samochod::wzorzec = wzorzec;
+	}
+	static Samochod* getWzorzec() {
+		if (wzorzec == nullptr) {
+			throw invalid_argument("nie ma wozroca");
+
+		}
+		return wzorzec;
+	}
+	
+
+	void setWlasciciel(Wlasciciel* w) {
+		this->w = w;
+	}
+
+	Wlasciciel* getWlasciciel() {
+		return this->w;
+	}
+
+	void setLicznik(int l) {
+		if (l < 0) {
+			throw invalid_argument("Licznik nie moze byc ujemny");
+		}
+		licznik = l;
+	}
+
+	int getLicznik() const {
+		return licznik;
+	}
+
+	void setDopuszczony(bool d) {
+		dopuszczony = d;
+	}
+
+	bool isDopuszczony() const {
+		return dopuszczony;
+	}
+	Samochod(const char* rej, int l, bool d, Wlasciciel* w, int a) {
+		this->setNrrejestrcji(rej);
+		this->setDopuszczony(d);
+		this->setwarpocz(a);
+			//setNrrejestrcji(++nr);
+		this->setWlasciciel(w);
+		this->setLicznik(l);
+	}
+	virtual double zasieg() const {
+		if (isDopuszczony()) {
+			throw invalid_argument("nie dopuszczony");
+		}
+		return 800;
+	}
+	/// <summary>
+	/// formalny
+	/// </summary>
+	virtual double obliczWartosc() const {
+		double WSP_SPARW = dopuszczony ? 1.0 : 0.2;
+		double wartosc = (warpocz - 0.1 * licznik) * WSP_SPARW;
+		if (wartosc < 400.0) {
+			wartosc = 400.0;
+		}
+		return wartosc;
+	}
+
+	virtual operator double() const {
+		return this->obliczWartosc();
+	}
+
+	bool operator!=(const Samochod& other) const {
+		if (abs(licznik - other.licznik) > 20) {
+			return true;
+		}
+		if (dopuszczony == other.dopuszczony) {
+			return true;
+		}
+		return false;
+	}
+};
+
+class SamochodElektryczny : public Samochod {
+private:
+	int stanBateri;
+
+public:
+	
+	SamochodElektryczny(Samochod s, int bateria) :Samochod(s) {
+	
+		setStanBaterii(bateria);
+
+	}
+	void setStanBaterii(int s) {
+		if (s < 0 || s > 100) {
+			throw invalid_argument("Zla wartosc");
+		}
+		else {
+			stanBateri = s;
+		}
+	}
+
+	int getStanBateri() {
+		return stanBateri;
+	}
+
+	double zasieg() const override {
+		if (isDopuszczony()) {
+			throw invalid_argument("nie dopuszczony");
+		}
+		return stanBateri * 2.5;
+	}
+	/*double obliczWartosc() const override {
+		double wartosc = Samochod::obliczWartosc();
+		if (!isDopuszczony()) {
+			wartosc *= 0.3;
+		}
+		return wartosc;
+	}*/
+
+	operator double() const override {
+		if (this->obliczWartosc() * 0.7 >= 400) {
+			return this->obliczWartosc() * 0.7;
+		}
+		return 400;
+	}
+};
+Samochod* Samochod::wzorzec = nullptr;
+//int Samochod::nr = 0;
+
+int main() {
+	// Tworzenie właścicieli
+	Wlasciciel wlasciciel1("Kowalski");
+	Wlasciciel wlasciciel2("Nowak");
+
+	try {
+		// Tworzenie samochodów
+		Samochod samochod1("ABC123456", 50000, true, &wlasciciel1, 10000);
+		Samochod samochod2("DEF123456", 30000, false, &wlasciciel2, 8000);
+
+		// Tworzenie samochodów elektrycznych
+		SamochodElektryczny elektryczny1(samochod1, 80);
+		//elektryczny1.setStanBaterii(80);
+
+		SamochodElektryczny elektryczny2(samochod2, 80);
+		elektryczny2.setStanBaterii(50);
+
+		// Testowanie operatora ==
+		cout << "Samochod 1 == Samochod 2? " << (samochod1 != samochod2 ? "Tak" : "Nie") << endl;
+		cout << "Elektryczny 1 == Elektryczny 2? " << (elektryczny1 != elektryczny2 ? "Tak" : "Nie") << endl;
+	
+	
+		// Testowanie operatora double
+		double samochod1Value = static_cast<double>(samochod1);
+		double elektryczny1Value = static_cast<double>(elektryczny1);
+		cout << "Wartosc samochodu 1 jako double: " << samochod1Value << " PLN" << endl;
+		cout << "Wartosc elektrycznego 1 jako double: " << elektryczny1Value << " PLN" << endl;
+
+	}
+	catch (const invalid_argument& e) {
+		cerr << "Blad: " << e.what() << endl;
+	}
+
+	return 0;
+}
