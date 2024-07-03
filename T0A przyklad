@@ -1,0 +1,130 @@
+
+int** tabgen2(int iloscRow, int iloscCol) {
+	//ciagła
+	uint32_t kombinat, maska;
+
+	maska = 127; //0011 11111
+
+	uint32_t tLiczba = iloscCol & maska;
+
+
+	uint32_t tStan = iloscRow & maska;
+	tLiczba <<= 24;
+	kombinat = tLiczba + tStan;
+
+	int** tab = new int* [iloscRow];
+	tab[0] = new int[iloscRow * iloscCol+1];
+	tab[0][0] = kombinat;
+	tab++;
+	for (int i = 1; i < iloscRow; i++)
+	 tab[i] = &tab[0][i * iloscCol];
+	
+	
+	return tab;
+}
+int** tabgen(int iloscRow,int iloscCol) {
+	///fragmentarycznie
+	int** tab2D= new int* [iloscRow+1];
+	
+	uint32_t kombinat, maska;
+
+	maska = 127; //0011 11111
+
+	uint32_t tLiczba = iloscCol & maska;
+
+
+	uint32_t tStan = iloscRow & maska;
+	/*cout << "tLiczba: " << bitset<32>(tLiczba) << endl;
+	cout << "tStan: " << bitset<32>(tStan) << endl;
+	cout << endl;*/
+	tLiczba <<= 24;
+	/*cout << "tLiczba: " << bitset<32>(tLiczba) << endl;
+	cout << "tLiczba: " << bitset<32>(tStan) << endl;*/
+	kombinat = tLiczba + tStan;
+	//cout << "tLiczba: " << bitset<32>(kombinat)<<"\n" << (int)kombinat << endl;
+	
+	tab2D[0] = new int[iloscCol] {0};
+	tab2D[0][0] = kombinat;
+	tab2D ++;
+	for (int i = 0; i < iloscRow; i++)
+	{
+
+		tab2D[i] = new int[iloscCol]  {0};
+		
+	}
+	
+	
+	return tab2D ;
+}
+int szukajCol(int g){
+	uint32_t kombinat=(uint32_t)g, maska;
+	maska = 127; //0011 11111
+	kombinat >>= 24;
+	//cout << "////\n";
+	//cout << kombinat;
+	//cout << "////\n";
+	return kombinat;
+}
+int szukajRow(int g) {
+	uint32_t kombinat = (uint32_t)g, maska;
+	maska = 127; //0011 11111
+	kombinat = kombinat&maska;
+	//cout << "////\n";
+	//cout << kombinat;
+	//cout << "////\n";
+	return kombinat;
+}
+void dopliku(int** tab) {
+	int iloscRow = szukajRow(tab[-1][0]);
+	int iloscCol = szukajCol(tab[-1][0]);
+
+	FILE* plik = NULL;
+	errno_t error = fopen_s(&plik, "../kol.txt", "w+b");
+	size_t g = 1;
+
+
+	for (int i = -1; i < iloscRow; i++) {
+		fwrite(tab[i], sizeof(int), size_t(iloscCol), plik);
+
+	}
+	fclose(plik);
+}
+int** zpliku() {
+	int** tab = tabgen(127, 127);
+	FILE* plik = NULL;
+	errno_t error = fopen_s(&plik, "../kol.txt", "r+b");
+	
+	//fread(tab[-1][0], sizeof(int), size_t(1), plik);
+	int iloscRow = szukajRow((int)tab[-1][0]);
+	int iloscCol = szukajRow((int)tab[-1][0]);
+	tab= tabgen(iloscRow, iloscCol);
+	rewind(plik);
+	for (int i = -1; i < iloscRow; i++) {
+		//fwrite(tab[i], sizeof(int), size_t(iloscCol), plik);
+		fread(tab[i], sizeof(tab[i]), size_t(iloscCol), plik);
+
+	}
+
+	fclose(plik);
+	return tab;
+}
+
+int main()
+{
+	int iloscCol = 6;
+	int iloscRow = 4;
+	int** tab = tabgen(iloscRow, iloscCol);
+	int** tab3 = tabgen2(iloscRow, iloscCol);
+	//int h=szukajCol(tab[-1][0]);
+	//szukajRow(tab[-1][0]);
+	//cout << tab[3][2];
+	
+	dopliku(tab);
+	int** tab2 = zpliku();
+	cout << tab[-1][0] << endl;
+	cout << "//////\n";
+	cout << tab2[-1][0];
+	cout << "//////\n";
+	cout << tab3[-1][0];
+
+}
