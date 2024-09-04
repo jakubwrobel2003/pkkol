@@ -1,0 +1,113 @@
+main 
+#include <iostream>
+#include <cstring>
+#include "tablica.h"
+
+// Funkcja do porównania dwóch tablic binarnie
+bool porownajTablice(const Element* tab1, const Element* tab2, int rozmiar) {
+    return memcmp(tab1, tab2, sizeof(Element) * rozmiar) == 0;
+}
+
+int main() {
+    // Kod ASCII pierwszej litery nazwiska, np. 'K' ma kod ASCII 75
+    char pierwsza_litera_nazwiska = 'K';
+    int rozmiar = static_cast<int>(pierwsza_litera_nazwiska);
+
+    // Tworzenie instancji wzorcowej
+    Element wzorzec;
+    wzorzec.i = 10;
+    wzorzec.d = 20.5;
+
+    // Alokacja i wypełnienie tablicy
+    Element* tablica = alokujTablice(rozmiar, wzorzec);
+
+    // Zapis tablicy do pliku
+    zapiszTabliceDoPliku("tablica.txt", tablica, rozmiar);
+
+    // Odczyt tablicy z pliku
+    int odczytany_rozmiar = 0;
+    Element* odczytana_tablica = odczytajTabliceZPliku("tablica.txt", odczytany_rozmiar);
+
+    // Sprawdzanie, czy odczytana tablica jest identyczna z zapisaną
+    if (odczytana_tablica && odczytany_rozmiar == rozmiar) {
+        if (porownajTablice(tablica, odczytana_tablica, rozmiar)) {
+            std::cout << "Tablice są identyczne." << std::endl;
+        } else {
+            std::cout << "Tablice nie są identyczne." << std::endl;
+        }
+    } else {
+        std::cout << "Błąd: Rozmiary tablic są różne lub odczyt nie powiódł się." << std::endl;
+    }
+
+    // Zwolnienie pamięci
+    delete[] tablica;
+    delete[] odczytana_tablica;
+
+    return 0;
+}
+
+tablic.cpp
+#include <iostream>
+#include <fstream>
+#include "tablica.h"
+
+// Funkcja alokująca tablicę i kopiująca wzorzec do każdego elementu
+Element* alokujTablice(int rozmiar, const Element& wzorzec) {
+    Element* tablica = new Element[rozmiar];
+    for (int i = 0; i < rozmiar; ++i) {
+        tablica[i] = wzorzec;
+    }
+    return tablica;
+}
+
+// Funkcja zapisująca tablicę do pliku
+void zapiszTabliceDoPliku(const char* nazwa_pliku, const Element* tablica, int rozmiar) {
+    std::ofstream plik(nazwa_pliku);
+    if (plik.is_open()) {
+        plik << rozmiar << std::endl; // Zapisujemy rozmiar tablicy
+        for (int i = 0; i < rozmiar; ++i) {
+            plik << tablica[i].i << " " << tablica[i].d << std::endl;
+        }
+        plik.close();
+    } else {
+        std::cerr << "Nie można otworzyć pliku do zapisu!" << std::endl;
+    }
+}
+
+// Funkcja odczytująca tablicę z pliku
+Element* odczytajTabliceZPliku(const char* nazwa_pliku, int& rozmiar) {
+    std::ifstream plik(nazwa_pliku);
+    if (plik.is_open()) {
+        plik >> rozmiar; // Odczytujemy rozmiar tablicy
+        Element* tablica = new Element[rozmiar];
+        for (int i = 0; i < rozmiar; ++i) {
+            plik >> tablica[i].i >> tablica[i].d;
+        }
+        plik.close();
+        return tablica;
+    } else {
+        std::cerr << "Nie można otworzyć pliku do odczytu!" << std::endl;
+        return nullptr;
+    }
+}
+
+tablica.h
+
+#ifndef TABLICA_H
+#define TABLICA_H
+
+struct Element {
+    int i;
+    double d;
+};
+
+// Funkcja alokująca tablicę o danym rozmiarze i kopiująca wzorzec do każdego elementu
+Element* alokujTablice(int rozmiar, const Element& wzorzec);
+
+// Funkcja zapisująca tablicę do pliku
+void zapiszTabliceDoPliku(const char* nazwa_pliku, const Element* tablica, int rozmiar);
+
+// Funkcja odczytująca tablicę z pliku
+Element* odczytajTabliceZPliku(const char* nazwa_pliku, int& rozmiar);
+
+#endif // TABLICA_H
