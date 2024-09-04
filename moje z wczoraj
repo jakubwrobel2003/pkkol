@@ -1,0 +1,230 @@
+
+#include <iostream>
+#include "funkcja.h"
+#include "fun.h"
+#include <cstdio>
+
+int main()
+{
+    xd();
+    short* tab = tabgen(4);
+    short* tab2 = tabgen(5);
+    int test= zapiszTabliceDoPliku(tab);
+    int test2 = zapiszTabliceDoPliku(tab2);
+    cout <<"\n";
+
+    short* tabtest = zpliku(2);
+    short* tabtest2 = zpliku(1);
+    std::cout << "Hello World!\n";
+    a jeden = create(5);
+    cout << jeden.size;
+   
+    cout << "\n" << jeden.size;
+    zapis(jeden);
+    zapis(jeden);
+
+    zwolnijstruct(jeden);
+    cout << jeden.size;
+}
+
+
+fun.cpp
+
+#include <iostream>
+#include <cstdio>
+using namespace std;
+struct a {
+    int* tab;
+    int size;
+};
+a create(int s) {
+    a struktura;
+    if (s > 0) {
+        struktura.size = s;  // Ustawienie rozmiaru tablicy w strukturze
+        // Poprawna alokacja pamięci dla dynamicznej tablicy int
+        struktura.tab = new int[s] {0};
+    }
+    else {
+        struktura.size = 0;
+        struktura.tab = nullptr;
+    }
+    return struktura;
+};
+void zwolnijstruct(a& array) {
+    
+    delete[] array.tab;
+    array.tab = nullptr;
+    array.size = 0;
+};
+void zapis(a a) {
+	FILE* plik = NULL;
+	bool static yes = true;
+	if (yes) {
+
+		errno_t error = fopen_s(&plik, "plik1.txt", "w");
+		if (error != 0 || plik == NULL) {
+			// Handle error (e.g., file not found or cannot open file)
+			return;
+		}
+		yes = !yes;
+	}
+	else {
+		errno_t error = fopen_s(&plik, "plik1.txt", "a");
+		if (error != 0 || plik == NULL) {
+			// Handle error (e.g., file not found or cannot open file)
+			return;
+		}
+	}
+
+	cout << "\n" << a.size;
+	// Write the array elements
+	for (int i = 0; i < a.size; ++i) {
+		fprintf(plik, "%d;", a.tab[i]);
+	}
+	fprintf(plik, "%d;", a.size);
+
+	// Close the file
+	fclose(plik);
+
+	// Move the pointer forward again to keep the original state
+	a.tab++;
+};
+fun.h
+
+#pragma once
+#include <iostream>
+using namespace std;
+struct a {
+    int* tab;
+    int size;
+};
+// Funkcja create powinna przyjmować inny typ argumentu niż 'a', aby uniknąć konfliktu nazw
+a create(int size);
+
+// Funkcja zwolnijstruct powinna przyjmować argument przez referencję lub wskaźnik, aby zmiany były widoczne poza funkcją
+void zwolnijstruct(a& array);
+
+void zapisdopliku(a struktura);
+void zapis(a a);
+funkcje.h
+
+#pragma once
+#include <iostream>
+using namespace std;
+
+void xd();
+
+short* tabgen(short rozmar);
+int zapiszTabliceDoPliku(short* tab);
+void zwolnij(int* a);
+short* zpliku(short g);
+int odczytTabliceDoPliku(short nrtab);
+funkvja.cpp
+
+#include <cstdio>
+#include <iostream>
+using namespace std;
+
+void xd() {
+	cout << "XDXDXDXD";
+};
+short* tabgen(short rozmar) {
+	short static ilosctab= 1;
+	short* newtab = new short[rozmar + 1] {0};
+	newtab++;
+	short dozapisu = rozmar << 8;
+	newtab[-1] = ilosctab + dozapisu;
+	cout << newtab[-1];
+	ilosctab++;
+	return newtab;
+
+}
+
+int zapiszTabliceDoPliku(short* tab) {
+    bool static tak = true;
+    FILE* plik = nullptr;
+    if (tak) {
+        // Inicjalizujemy wskaźnik na nullptr
+        errno_t err = fopen_s(&plik, "tablice.txt", "wb"); // Używamy fopen_s do otwarcia pliku
+        if (err != 0) { // Sprawdzamy, czy otwarcie pliku zakończyło się powodzeniem
+            std::cerr << "Nie można otworzyć pliku do zapisu!" << std::endl;
+            return 1;
+        }
+        tak = !tak;
+    }
+    else {
+        // Inicjalizujemy wskaźnik na nullptr
+        errno_t err = fopen_s(&plik, "tablice.txt", "ab"); // Używamy fopen_s do otwarcia pliku
+        if (err != 0) { // Sprawdzamy, czy otwarcie pliku zakończyło się powodzeniem
+            std::cerr << "Nie można otworzyć pliku do zapisu!" << std::endl;
+            return 1;
+        }
+    }
+
+    if (tab == nullptr || tab[-1] % 256 <= 0) return 0;  // Sprawdzenie poprawności danych
+
+    // Otwieranie pliku w trybie binarnym do zapisu
+
+
+    // Zapis tablicy do pliku
+    tab--;
+    fwrite(tab, sizeof(short), (tab[0] >> 8) + 1, plik);
+
+    // Zamknięcie pliku
+    fclose(plik);
+    return 2;
+};
+void zwolnij(int* a) {
+    // Implementacja funkcji zwalniającej pamięć przydzieloną dla tablicy
+    if (a) {
+        a--; // Cofnięcie wskaźnika do pierwotnej lokalizacji
+        delete[] a;
+        a = nullptr;
+    };
+};
+short* zpliku(short g) {
+	FILE* plik = NULL;
+	short size = 255;
+	short* tab = new short[255] {0};
+	short a = -1;
+	errno_t error = fopen_s(&plik, "tablice.txt", "r");
+	do {
+		fread(&a, sizeof(short), 1, plik);
+		size = a;
+		size >>= 8;
+		uint8_t mask = 15;
+		a = a & mask;
+		//cout <<size <<" " <<a<< "\n";
+		if (g == a) {
+			tab = new short[size];
+			fread(tab, sizeof(short), size, plik);
+		}
+	} while (g != a);
+	short* tab2 = new short[size + 1];
+	//cout << size << " " << a << "\n";
+	uint8_t  maska;
+
+	maska = 15; //1111 11111
+
+	uint8_t tLiczba = size & maska;
+	tLiczba <<= 4;
+	tLiczba = tLiczba + a;
+
+	tab2[0] = tLiczba;
+	tab2++;
+	cout << "SIZE" << size;
+	cout << "tablica uzytkownika;\n";
+	for (int i = 0; i < size; i++) {
+		tab2[i] = tab[i];
+		cout << tab2[i] << i << "\n";
+	}
+	/*
+	*/
+
+
+
+
+
+	return tab;
+};
+fun.h
